@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能知识库</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #007bff;
+            --hover-blue: #0056b3;
+            --background: #f4f4f9;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: var(--background);
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* 搜索框样式 */
+        .search-container {
+            max-width: 800px;
+            margin: 20px auto;
+            position: relative;
+        }
+
+        #globalSearch {
+            width: 100%;
+            padding: 15px 45px 15px 20px;
+            border: 2px solid #ddd;
+            border-radius: 30px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        #globalSearch:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 10px rgba(0,123,255,0.25);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+        }
+
+        /* Tab导航增强版 */
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin: 30px 0;
+        }
+
+        .tab {
+            padding: 12px 25px;
+            border-radius: 8px;
+            background: white;
+            border: 2px solid #ddd;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+        }
+
+        .tab i {
+            margin-right: 8px;
+            font-size: 18px;
+        }
+
+        .tab.active, 
+        .tab:hover {
+            background: var(--primary-blue);
+            color: white;
+            border-color: var(--primary-blue);
+            box-shadow: 0 4px 15px rgba(0,123,255,0.3);
+        }
+
+        /* 内容区域优化 */
+        .tab-content {
+            max-width: 1000px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.08);
+        }
+
+        .qa-item {
+            margin-bottom: 25px;
+            padding: 20px;
+            border-radius: 10px;
+            background: #f8f9fa;
+            transition: transform 0.2s;
+        }
+
+        .qa-item:hover {
+            transform: translateX(10px);
+            background: white;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            color: #2c3e50;
+            border-left: 4px solid var(--primary-blue);
+            padding-left: 15px;
+            margin: 25px 0;
+        }
+
+        /* 移动端优化 */
+        @media (max-width: 768px) {
+            .tabs {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .tab {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .tab-content {
+                padding: 20px;
+                border-radius: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 全局搜索 -->
+    <div class="search-container">
+        <input type="text" id="globalSearch" placeholder="输入关键词搜索所有问题...">
+        <i class="fas fa-search search-icon"></i>
+    </div>
+
+    <!-- Tab导航 -->
+    <div class="tabs">
+        <div class="tab active" data-category="all" onclick="filterContent('all')">
+            <i class="fas fa-star"></i>全部问题
+        </div>
+        <div class="tab" data-category="recommend" onclick="filterContent('recommend')">
+            <i class="fas fa-trophy"></i>推荐榜
+        </div>
+        <div class="tab" data-category="withdraw" onclick="filterContent('withdraw')">
+            <i class="fas fa-hand-holding-usd"></i>提款问题
+        </div>
+        <!-- 更多分类... -->
+    </div>
+
+    <!-- 动态内容 -->
+    <div id="contentContainer"></div>
+
+<script>
+// FAQ数据
+const faqData = [
+    {
+        category: 'recommend',
+        question: '如何进入推荐榜？',
+        answer: '邀请至少20名新玩家并保持转化率...',
+        icon: 'trophy'
+    },
+    {
+        category: 'withdraw',
+        question: '如何免手续费提款？',
+        answer: '使用特定策略进行1v1对战...',
+        icon: 'hand-holding-usd'
+    },
+    // 更多数据...
+];
+
+// 初始化
+function init() {
+    renderContent(faqData);
+    setupSearch();
+}
+
+// 渲染内容
+function renderContent(data) {
+    const container = document.getElementById('contentContainer');
+    const grouped = groupByCategory(data);
+    
+    let html = '';
+    for (const [category, items] of Object.entries(grouped)) {
+        html += `
+            <div class="tab-content" data-category="${category}">
+                ${items.map(item => `
+                    <div class="qa-item">
+                        <h2><i class="fas fa-${item.icon}"></i> ${item.question}</h2>
+                        <p>${item.answer}</p>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+    container.innerHTML = html;
+}
+
+// 分类过滤
+function filterContent(category) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelector(`.tab[data-category="${category}"]`).classList.add('active'));
+    
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.style.display = category === 'all' || 
+            content.dataset.category === category ? 'block' : 'none';
+    });
+}
+
+// 即时搜索
+function setupSearch() {
+    const searchInput = document.getElementById('globalSearch');
+    searchInput.addEventListener('input', function(e) {
+        const term = e.target.value.toLowerCase();
+        document.querySelectorAll('.qa-item').forEach(item => {
+            const text = item.innerText.toLowerCase();
+            item.style.display = text.includes(term) ? 'block' : 'none';
+        });
+    });
+}
+
+// 工具函数
+function groupByCategory(data) {
+    return data.reduce((acc, item) => {
+        acc[item.category] = acc[item.category] || [];
+        acc[item.category].push(item);
+        return acc;
+    }, {});
+}
+
+// 初始化
+init();
+</script>
+
+</body>
+</html>
